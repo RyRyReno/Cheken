@@ -1,0 +1,69 @@
+
+name: Build and publish Cheken
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Get Cheken files
+        uses: actions/checkout@v4
+        with:
+          path: cheken
+
+      - name: Get Rocket League clone
+        uses: actions/checkout@v4
+        with:
+          repository: KofiiDerKoder/rocket-league-clone
+          path: kofii-source
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build Rocket League clone
+        working-directory: kofii-source
+        run: |
+          npm ci
+          npx vite build --base=/Cheken/games/kofii/
+
+      - name: Prepare Cheken website
+        run: |
+          mkdir -p published/games/kofii
+          cp cheken/index.html published/index.html
+          if [ -d cheken/games ]; then
+            cp -a cheken/games/. published/games/
+          fi
+          cp -a kofii-source/dist/. published/games/kofii/
+          cp kofii-source/README.md published/games/kofii/SOURCE-README.md
+          touch published/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: published
+
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
