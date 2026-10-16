@@ -1,0 +1,37 @@
+
+name: Prepare Rocket Arena
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Rocket Arena
+        uses: actions/checkout@v4
+        with:
+          repository: MalikAhed/rocket-arena-web
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install game dependencies
+        run: npm ci
+
+      - name: Build Rocket Arena
+        run: npm run build
+
+      - name: Package built game
+        uses: actions/upload-artifact@v4
+        with:
+          name: rocket-arena-build
+          path: dist/
+          if-no-files-found: error
