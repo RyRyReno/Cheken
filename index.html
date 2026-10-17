@@ -1,94 +1,435 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#111827">
-<title>Schoology</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#111827;color:#f8fafc;font-family:system-ui,Arial,sans-serif}
-header{background:#1f2937;border-bottom:1px solid #344054;padding:22px max(20px,calc((100% - 1100px)/2));display:flex;justify-content:space-between;align-items:center}
-h1{margin:0;font-size:32px}
-main{max-width:1100px;margin:auto;padding:36px 20px 65px}
-.subtitle{color:#94a3b8;margin-top:4px}
-input{width:100%;padding:15px;background:#253247;border:1px solid #44516a;border-radius:12px;color:white;font-size:16px;margin:16px 0 8px}
-input:focus{outline:2px solid #67e8f9}
-.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:18px;margin-top:22px}
-.game{background:#1f2937;border:1px solid #334155;border-radius:15px;padding:26px 18px;min-height:205px;text-align:center;color:inherit;display:block;text-decoration:none}
-.game h3{margin:10px 0}
-.game .emoji{font-size:50px;margin-bottom:8px}
-.game p{color:#94a3b8;margin:9px 0;font-size:14px;line-height:1.5}
-a.game:hover,a.game:focus{border-color:#67e8f9;transform:translateY(-2px);outline:none}
-.status{display:inline-block;padding:5px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#1e3a46;color:#a5f3fc}
-.status.pending{background:#374151;color:#cbd5e1}
-.game.pending{opacity:.75}
-footer{color:#94a3b8;text-align:center;margin-top:40px;font-size:13px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="Cheken — your games, your playground. Play browser games in one place.">
+  <title>Schoology</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --surface: #151d32;
+      --surface-2: #1c2942;
+      --line: rgba(174, 198, 232, .16);
+      --text: #f5f8ff;
+      --muted: #a6b5d1;
+      --cyan: #6ee7f9;
+      --purple: #ad95ff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse at 8% 8%, rgba(39, 124, 199, .17), transparent 36%),
+        radial-gradient(ellipse at 89% 23%, rgba(119, 73, 193, .15), transparent 37%),
+        radial-gradient(ellipse at 50% 100%, rgba(17, 120, 133, .08), transparent 43%);
+      animation: background-glow 16s ease-in-out infinite alternate;
+    }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--cyan); outline-offset: 4px; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      background: rgba(13, 20, 38, .86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .topbar-inner {
+      min-height: 80px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo {
+      display: inline-flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: -.7px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #283e63, #453464);
+      border: 1px solid rgba(255, 255, 255, .15);
+      border-radius: 15px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .2);
+      font-size: 26px;
+    }
+    .topbar nav a {
+      text-decoration: none;
+      color: #d0dcf2;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      transition: background .2s, border-color .2s;
+    }
+    .topbar nav a:hover { background: #253553; border-color: #5d749c; }
+    main { padding-top: 36px; }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: 2.1px;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    .intro { margin-bottom: 26px; }
+    .intro h1 { margin: 0; font-size: clamp(32px, 5vw, 49px); letter-spacing: -1.5px; line-height: 1.12; }
+    .intro p:last-child { color: var(--muted); margin: 12px 0 0; font-size: 16px; }
+    .featured {
+      position: relative;
+      overflow: hidden;
+      min-height: 282px;
+      padding: clamp(26px, 5vw, 49px);
+      border: 1px solid rgba(149, 200, 255, .22);
+      border-radius: 25px;
+      background:
+        radial-gradient(circle at 76% 38%, rgba(114, 225, 255, .23), transparent 33%),
+        linear-gradient(112deg, #123b63 0%, #263b80 53%, #593675 100%);
+      box-shadow: 0 22px 70px rgba(2, 7, 18, .22);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 22px;
+    }
+    .featured::after {
+      content: "";
+      position: absolute;
+      width: 370px;
+      height: 370px;
+      top: -142px;
+      right: -115px;
+      border-radius: 50%;
+      border: 46px solid rgba(255, 255, 255, .055);
+      pointer-events: none;
+    }
+    .featured-copy { position: relative; z-index: 1; max-width: 570px; }
+    .pill {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      color: #dffaff;
+      background: rgba(20, 35, 65, .4);
+      border: 1px solid rgba(191, 243, 255, .33);
+      font-size: 11px;
+      letter-spacing: 1px;
+      font-weight: 850;
+    }
+    .featured h2 { margin: 16px 0 9px; font-size: clamp(27px, 4vw, 42px); letter-spacing: -1px; line-height: 1.15; }
+    .featured p { max-width: 430px; color: #e1ebff; margin: 0 0 25px; }
+    .primary-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 13px 20px;
+      color: #101a2d;
+      background: white;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 850;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .19);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .primary-button:hover { transform: translateY(-3px); box-shadow: 0 16px 35px rgba(0, 0, 0, .3); }
+    .featured-art {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 220px;
+      width: 220px;
+      height: 205px;
+      display: grid;
+      place-items: center;
+      border-radius: 25px;
+      background: rgba(14, 27, 58, .24);
+      border: 1px solid rgba(223, 240, 255, .18);
+      box-shadow: inset 0 0 55px rgba(135, 223, 255, .09), 0 25px 45px rgba(10, 15, 38, .2);
+      transform: rotate(7deg);
+      animation: float 5s ease-in-out infinite;
+    }
+    .featured-art span { font-size: 108px; filter: drop-shadow(0 12px 20px rgba(4, 13, 29, .35)); }
+    .library { padding-top: 43px; padding-bottom: 62px; }
+    .section-heading { display: flex; justify-content: space-between; gap: 15px; align-items: end; flex-wrap: wrap; margin-bottom: 22px; }
+    .section-heading h2 { margin: 0 0 4px; font-size: 27px; letter-spacing: -.5px; }
+    .section-heading p { color: var(--muted); margin: 0; font-size: 14px; }
+    .count { color: var(--cyan); font-size: 13px; font-weight: 750; }
+    .tools { display: flex; gap: 13px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
+    .search-wrap { position: relative; flex: 1 1 280px; }
+    .search-wrap::before { content: "⌕"; position: absolute; left: 16px; top: 50%; transform: translateY(-53%); font-size: 27px; color: #9cb8d8; pointer-events: none; }
+    .search-wrap input {
+      width: 100%;
+      padding: 14px 16px 14px 46px;
+      border: 1px solid #385171;
+      border-radius: 13px;
+      background: #17243a;
+      color: white;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .search-wrap input::placeholder { color: #9dacc7; }
+    .search-wrap input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(110, 231, 249, .14); }
+    .random-button {
+      padding: 14px 18px;
+      color: #e8f4ff;
+      background: #20334e;
+      border: 1px solid #3b5878;
+      border-radius: 13px;
+      font-weight: 750;
+      transition: background .2s, transform .2s;
+    }
+    .random-button:hover { background: #2b456a; transform: translateY(-2px); }
+    .filters { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 23px; }
+    .filter {
+      padding: 9px 15px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #19253b;
+      color: #b8c8e3;
+      font-size: 13px;
+      font-weight: 750;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .filter:hover { border-color: #7194bc; color: white; }
+    .filter[aria-pressed="true"] { background: #c2f6ff; color: #102238; border-color: #c2f6ff; }
+    .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(245px, 1fr)); gap: 19px; }
+    .game-card {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 320px;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .1);
+      transition: transform .23s ease, border-color .23s ease, box-shadow .23s ease;
+    }
+    a.game-card:hover, a.game-card:focus-visible { transform: translateY(-7px); border-color: #76d9e8; box-shadow: 0 20px 43px rgba(8, 18, 39, .42); }
+    .game-card[hidden] { display: none; }
+    .game-art {
+      min-height: 153px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .game-art::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 75% 15%, rgba(255, 255, 255, .2), transparent 43%);
+      z-index: -1;
+    }
+    .game-art .art-emoji { font-size: 72px; line-height: 1; filter: drop-shadow(0 12px 14px rgba(7, 16, 34, .27)); transition: transform .25s ease; }
+    a.game-card:hover .art-emoji { transform: scale(1.13) rotate(-5deg); }
+    .art-classic { background: linear-gradient(135deg, #237365, #19435f); }
+    .art-112 { background: linear-gradient(135deg, #30605b, #456886 65%, #45477d); }
+    .art-120 { background: linear-gradient(135deg, #624b9c, #2d6596); }
+    .art-arena { background: linear-gradient(135deg, #b15d3f, #733d6c); }
+    .art-nexus { background: linear-gradient(135deg, #4b536e, #333e57); }
+    .art-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(10, 19, 37, .62);
+      border: 1px solid rgba(255, 255, 255, .2);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .6px;
+    }
+    .game-info { display: flex; flex: 1; flex-direction: column; padding: 17px 18px 18px; }
+    .game-type { color: #8bbbd9; font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: 1px; }
+    .game-info h3 { margin: 5px 0 5px; font-size: 19px; line-height: 1.3; }
+    .game-info p { margin: 0 0 17px; color: var(--muted); font-size: 13px; }
+    .game-action {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding-top: 13px;
+      color: #9cf1ff;
+      font-weight: 850;
+      font-size: 13px;
+    }
+    .game-action .arrow { font-size: 20px; line-height: 1; }
+    .game-card.pending { opacity: .73; }
+    .pending .game-action { color: #c4ccdd; }
+    .empty-state { padding: 35px; border: 1px dashed #4b6384; border-radius: 16px; text-align: center; color: var(--muted); }
+    .empty-state[hidden] { display: none; }
+    footer { border-top: 1px solid var(--line); padding: 26px 0 35px; text-align: center; color: #92a7c7; font-size: 13px; }
+    @keyframes float { 0%, 100% { transform: rotate(7deg) translateY(0); } 50% { transform: rotate(7deg) translateY(-12px); } }
+    @keyframes background-glow { from { opacity: .65; transform: scale(1); } to { opacity: 1; transform: scale(1.08); } }
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 28px, 1120px); }
+      .topbar-inner { min-height: 69px; }
+      .logo { font-size: 21px; }
+      .logo-icon { width: 40px; height: 40px; font-size: 24px; }
+      main { padding-top: 28px; }
+      .featured { min-height: 260px; padding: 27px; }
+      .featured-art { flex: 0 0 85px; width: 85px; height: 90px; transform: rotate(7deg); }
+      .featured-art span { font-size: 48px; }
+      .games { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+      .library { padding-top: 33px; }
+    }
+    @media (max-width: 430px) {
+      .featured-art { display: none; }
+      .featured { min-height: auto; }
+      .topbar nav a { padding: 9px 12px; }
+      .games { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
 </head>
 <body>
-<header><h1>🐔 Cheken</h1><strong>🎮 Games</strong></header>
-<main>
-<h2>Your games. Your playground.</h2>
-<p class="subtitle">Browser games hosted on Cheken.</p>
-<label for="search">Search games</label>
-<input id="search" placeholder="Search games..." oninput="filterGames()">
-<h2>All Games</h2>
-<div class="games">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="logo" href="/" aria-label="Cheken homepage"><span class="logo-icon">🐔</span> CHEKEN</a>
+      <nav aria-label="Main navigation"><a href="#games">🎮 Explore Games</a></nav>
+    </div>
+  </header>
 
-<a class="game" href="games/minecraft/mc.html" data-name="minecraft eaglercraft">
-  <div class="emoji">⛏️</div>
-  <h3>Minecraft</h3>
-  <span class="status">▶ Play</span>
-  <p>Your existing Minecraft game.</p>
-</a>
+  <main class="wrap">
+    <section class="intro" aria-labelledby="welcome-title">
+      <p class="eyebrow">Welcome to Cheken</p>
+      <h1 id="welcome-title">Your games. <span style="color:var(--cyan)">Your playground.</span></h1>
+      <p>Pick a game, jump in, and have fun. No complicated menus.</p>
+    </section>
 
-  <a class="game"
-   href="games/minecraft-new/"
-   data-name="minecraft 1.12.2 eaglercraft">
-  <div class="emoji">🛡️</div>
-  <h3>Minecraft 1.12.2</h3>
-  <span class="status">▶ Play</span>
-  <p>Explore, build, and survive in Minecraft 1.12.2!</p>
-</a>
+    <section class="featured" aria-labelledby="featured-title">
+      <div class="featured-copy">
+        <span class="pill">✦ FEATURED GAME</span>
+        <h2 id="featured-title">Minecraft 1.20.6</h2>
+        <p>Explore a modern Minecraft-style world. Build, discover, and survive!</p>
+        <a class="primary-button" href="games/minecraft-1206/index.html">▶ Play Now <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="featured-art" aria-hidden="true"><span>🌸</span></div>
+    </section>
 
-  <a class="game"
-   href="games/minecraft-1206/index.html"
-   data-name="minecraft 1.20.6 eaglercraft">
-  <div class="emoji">🌸</div>
-  <h3>Minecraft 1.20.6</h3>
-  <span class="status">▶ Play</span>
-  <p>Explore a modern Minecraft-style world!</p>
-</a>
-  
-<a class="game"
-   href="games/rocket-arena/"
-   data-name="rocket arena car soccer">
-  <div class="emoji">🏟️</div>
-  <h3>Rocket Arena</h3>
-  <span class="status">▶ Play</span>
-  <p>Free Play and Bot Matches</p>
-</a>
+    <section id="games" class="library" aria-labelledby="games-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Find your next adventure</p>
+          <h2 id="games-title">Explore Games</h2>
+          <p>All your favorites in one place.</p>
+        </div>
+        <span id="game-count" class="count" aria-live="polite">5 games</span>
+      </div>
 
+      <div class="tools">
+        <div class="search-wrap">
+          <label for="search" class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Search games</label>
+          <input id="search" type="search" placeholder="Search games..." autocomplete="off">
+        </div>
+        <button id="random-game" class="random-button" type="button">🎲 Surprise Me!</button>
+      </div>
 
-<div class="game pending" data-name="rocket nexus aerial rings training">
-  <div class="emoji">🎯</div>
-  <h3>Rocket Nexus</h3>
-  <span class="status pending">Not installed</span>
-  <p>Coming soon - awaiting an authorized game build.</p>
-</div>
+      <div class="filters" role="group" aria-label="Filter games by category">
+        <button class="filter" type="button" data-filter="all" aria-pressed="true">All Games</button>
+        <button class="filter" type="button" data-filter="minecraft" aria-pressed="false">⛏️ Minecraft</button>
+        <button class="filter" type="button" data-filter="sports" aria-pressed="false">🏎️ Sports</button>
+        <button class="filter" type="button" data-filter="upcoming" aria-pressed="false">✨ Coming Soon</button>
+      </div>
 
-</div>
-<footer>Cheken - Your games. Your playground.</footer>
-</main>
-<script>
-function filterGames(){
-  const q=document.getElementById('search').value.toLowerCase().trim();
-  document.querySelectorAll('.game').forEach(game=>{
-    game.style.display=(game.dataset.name||'').includes(q)?'':'none';
-  });
-}
-</script>
+      <div class="games" id="game-grid">
+        <a class="game-card" href="games/minecraft/mc.html" data-name="minecraft eaglercraft classic 1.8.8" data-category="minecraft" data-playable="true">
+          <div class="game-art art-classic"><span class="art-badge">CLASSIC</span><span class="art-emoji" aria-hidden="true">⛏️</span></div>
+          <div class="game-info"><span class="game-type">Minecraft</span><h3>Minecraft</h3><p>Your original Minecraft adventure.</p><div class="game-action"><span>▶ Play Game</span><span class="arrow" aria-hidden="true">↗</span></div></div>
+        </a>
+
+        <a class="game-card" href="games/minecraft-new/" data-name="minecraft 1.12.2 eaglercraft survival" data-category="minecraft" data-playable="true">
+          <div class="game-art art-112"><span class="art-badge">SURVIVAL</span><span class="art-emoji" aria-hidden="true">🛡️</span></div>
+          <div class="game-info"><span class="game-type">Minecraft</span><h3>Minecraft 1.12.2</h3><p>Explore, build, and survive in Minecraft 1.12.2!</p><div class="game-action"><span>▶ Play Game</span><span class="arrow" aria-hidden="true">↗</span></div></div>
+        </a>
+
+        <a class="game-card" href="games/minecraft-1206/index.html" data-name="minecraft 1.20.6 eaglercraft modern" data-category="minecraft" data-playable="true">
+          <div class="game-art art-120"><span class="art-badge">FEATURED</span><span class="art-emoji" aria-hidden="true">🌸</span></div>
+          <div class="game-info"><span class="game-type">Minecraft</span><h3>Minecraft 1.20.6</h3><p>Explore a modern Minecraft-style world!</p><div class="game-action"><span>▶ Play Game</span><span class="arrow" aria-hidden="true">↗</span></div></div>
+        </a>
+
+        <a class="game-card" href="games/rocket-arena/" data-name="rocket arena car soccer sports" data-category="sports" data-playable="true">
+          <div class="game-art art-arena"><span class="art-badge">CAR SOCCER</span><span class="art-emoji" aria-hidden="true">🏟️</span></div>
+          <div class="game-info"><span class="game-type">Sports / Racing</span><h3>Rocket Arena</h3><p>Free Play and Bot Matches.</p><div class="game-action"><span>▶ Play Game</span><span class="arrow" aria-hidden="true">↗</span></div></div>
+        </a>
+
+        <article class="game-card pending" data-name="rocket nexus aerial rings training coming soon" data-category="upcoming" data-playable="false">
+          <div class="game-art art-nexus"><span class="art-badge">COMING SOON</span><span class="art-emoji" aria-hidden="true">🎯</span></div>
+          <div class="game-info"><span class="game-type">Training</span><h3>Rocket Nexus</h3><p>Coming soon — awaiting an authorized game build.</p><div class="game-action"><span>Not installed</span><span class="arrow" aria-hidden="true">⌛</span></div></div>
+        </article>
+      </div>
+      <div id="empty-state" class="empty-state" role="status" hidden>No games found. Try another search or category!</div>
+    </section>
+  </main>
+
+  <footer>🐔 Cheken &mdash; Your games. Your playground.</footer>
+
+  <script>
+    const search = document.getElementById('search');
+    const filters = document.querySelectorAll('.filter');
+    const games = Array.from(document.querySelectorAll('.game-card'));
+    const count = document.getElementById('game-count');
+    const emptyState = document.getElementById('empty-state');
+    let currentFilter = 'all';
+
+    function filterGames() {
+      const query = search.value.toLowerCase().trim();
+      let visible = 0;
+      games.forEach(game => {
+        const matchesName = (game.dataset.name || '').includes(query);
+        const matchesCategory = currentFilter === 'all' || game.dataset.category === currentFilter;
+        const show = matchesName && matchesCategory;
+        game.hidden = !show;
+        if (show) visible++;
+      });
+      count.textContent = `${visible} ${visible === 1 ? 'game' : 'games'}`;
+      emptyState.hidden = visible !== 0;
+    }
+
+    search.addEventListener('input', filterGames);
+    filters.forEach(button => button.addEventListener('click', () => {
+      currentFilter = button.dataset.filter;
+      filters.forEach(filter => filter.setAttribute('aria-pressed', String(filter === button)));
+      filterGames();
+    }));
+
+    document.getElementById('random-game').addEventListener('click', () => {
+      const playable = games.filter(game => game.dataset.playable === 'true' && !game.hidden);
+      const choices = playable.length ? playable : games.filter(game => game.dataset.playable === 'true');
+      if (choices.length) window.location.href = choices[Math.floor(Math.random() * choices.length)].getAttribute('href');
+    });
+    filterGames();
+  </script>
 </body>
 </html>
